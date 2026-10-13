@@ -11,19 +11,22 @@ import chatRoutes from "./Routes/chat.js";
 import resumeRoutes from "./Routes/resume.js";
 import scamShieldRoutes from "./Routes/scamShield.js";
 
-// DNS configuration for MongoDB/network resolution
+// DNS configuration for MongoDB
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-    ],
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -32,7 +35,7 @@ app.use(
 // Parse JSON
 app.use(express.json({ limit: "1mb" }));
 
-// Backend health check
+// Root health check
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -40,22 +43,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// ScamShield health check
-app.get("/api/scamshield/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "ScamShield route is available.",
-    database: mongoose.connection.readyState === 1
-      ? "connected"
-      : "disconnected",
-    geminiConfigured: Boolean(
-      process.env.GEMINI_API_KEY &&
-      process.env.GEMINI_MODEL
-    ),
-  });
-});
-
-// Existing routes
+// Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/resume", resumeRoutes);
@@ -88,12 +76,11 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Start server after connecting to MongoDB
-
+// Connect MongoDB and start server
 async function startServer() {
   try {
     if (!process.env.MONGODB_URI) {
-      throw new Error("MONGODB_URI is missing in .env");
+      throw new Error("MONGODB_URI is missing.");
     }
 
     await mongoose.connect(process.env.MONGODB_URI);
@@ -101,13 +88,12 @@ async function startServer() {
     console.log("MongoDB connected successfully");
 
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Backend running on port ${PORT}`);
+      console.log(`Nexora backend running on port ${PORT}`);
     });
   } catch (error) {
     console.error("Server startup failed:", error.message);
     process.exit(1);
   }
 }
-
 
 startServer();
