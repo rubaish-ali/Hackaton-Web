@@ -1,10 +1,11 @@
+
 {
   "name": "backend",
   "version": "1.0.0",
   "description": "Nexora backend API",
   "main": "server.js",
   "scripts": {
-    "start": "npm run dev",
+    "start": "node server.js",
     "dev": "node --watch server.js"
   },
   "keywords": [],
