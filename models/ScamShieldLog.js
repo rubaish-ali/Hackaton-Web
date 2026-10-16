@@ -8,13 +8,11 @@ const scamShieldLogSchema = new mongoose.Schema(
       required: true,
       maxlength: 12000,
     },
-
     status: {
       type: String,
       enum: ["processing", "completed", "failed"],
       default: "processing",
     },
-
     analysis: {
       riskLevel: {
         type: String,
@@ -25,20 +23,13 @@ const scamShieldLogSchema = new mongoose.Schema(
       verificationSteps: [String],
       disclaimer: String,
     },
-
     errorCategory: {
       type: String,
       default: null,
     },
   },
-  {
-    timestamps: true,
-    collection: "scamshield_logs",
-  }
+  { timestamps: true }
 );
 
-const ScamShieldLog =
-  mongoose.models.ScamShieldLog ||
+export default mongoose.models.ScamShieldLog ||
   mongoose.model("ScamShieldLog", scamShieldLogSchema);
-
-export default ScamShieldLog;
