@@ -88,6 +88,24 @@ app.use((error, req, res, next) => {
   });
 });
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://frontend-git-main-danger-rubs-projects.vercel.app",
+  "https://frontend-beige-kappa-72.vercel.app",
+  "https://frontend-q7oir01k1-danger-rubs-projects.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json({ limit: "1mb" }));
+
 // Start server after connecting to MongoDB
 
 async function startServer() {
