@@ -11,7 +11,6 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body || {};
 
-    // Validate input
     if (
       typeof name !== "string" ||
       typeof email !== "string" ||
@@ -35,7 +34,6 @@ router.post("/signup", async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check existing user
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
@@ -47,10 +45,8 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create account
     const newUser = await User.create({
       name: name.trim(),
       email: normalizedEmail,
@@ -65,7 +61,6 @@ router.post("/signup", async (req, res) => {
     });
   } catch (error) {
     console.error("Signup error:", error.message);
-    console.error("Signup error code:", error.code);
 
     if (error.code === 11000) {
       return res.status(409).json({
@@ -76,7 +71,7 @@ router.post("/signup", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Signup failed. Please check the backend logs.",
+      message: "Signup failed. Please check backend logs.",
     });
   }
 });
@@ -98,8 +93,10 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const user = await User.findOne({
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
     }).select("+password");
 
     if (!user) {
@@ -121,8 +118,13 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    if (!process.env.JWT_SECRET) {
-      console.error("JWT_SECRET is missing in environment variables.");
+    // Check JWT configuration only when logging in
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!jwtSecret || !jwtSecret.trim()) {
+      console.error(
+        "JWT_SECRET is missing in environment variables."
+      );
 
       return res.status(500).json({
         success: false,
@@ -132,7 +134,7 @@ router.post("/login", async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id.toString() },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: "1d" }
     );
 
@@ -150,11 +152,10 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error.message);
-    console.error("Login error code:", error.code);
 
     return res.status(500).json({
       success: false,
-      message: "Login failed. Please check the backend logs.",
+      message: "Login failed. Please check backend logs.",
     });
   }
 });
